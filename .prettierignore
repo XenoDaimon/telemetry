@@ -1,0 +1,44 @@
+# If there is a separator at the beginning or middle (or both) of the pattern,
+# then the pattern is relative to the directory level of the particular "*ignore" file itself.
+# Otherwise the pattern may also match at any level below the .gitignore level.
+
+*.dart
+**/flutter
+**/vue
+
+# ignore artifacts
+.angular
+.docusaurus
+build
+data
+outputs
+
+## default of prettierignore v1.2
+## whatever the project add the below lines
+# other files
+.husky/_
+*.lock
+
+# logs
+logs
+*.log*
+
+# compiled output
+dist
+lib
+node_modules
+.cache/*
+
+# coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# OS
+.DS_Store
+
+# ide
+.idea
+.vscode

@@ -1,65 +1,22 @@
-import { WebServer } from '@dronisos/telemetry/api/web-server.js';
-import telemetryServer, { TelemetryServer } from '@dronisos/telemetry/telemetry/telemetry-server.js';
-import { program } from 'commander';
-import config from '@dronisos/telemetry/config.js';
+import dotenv from 'dotenv';
+import express, { Express } from 'express';
+import * as process from 'node:process';
 
-type ApplicationConfiguration = {
-    apiHost: string;
-    apiPort: number;
-    serverHost: string;
-    serverPort: number;
-};
+import { routes } from '@dronisosTelemetry/routes/routes';
+import { telemetryServer } from '@dronisosTelemetry/telemetry/server';
+import { logger } from '@dronisosTelemetry/utils/logger';
 
-class DronisosTelemetry {
-    private applicationConfiguration!: ApplicationConfiguration;
-    private telemetryServer!: TelemetryServer;
-    private webServer!: WebServer;
+dotenv.config();
 
-    public constructor() {
-        this.parseArguments();
-        this.startTelemetryServer();
-        this.startWebServer();
-    }
+const app: Express = express();
+const host: string = process.env.API_HOST || '0.0.0.0';
+const port: number = parseInt(process.env.API_PORT || '') || 3000;
 
-    private parseArguments(): void {
-        program
-            .name('Dronisos Telemetry')
-            .description('Telemetry server with API')
-            .version('1.0.0');
+app.use(express.json());
+app.use('/', routes);
 
-        program
-            .option('-wH, --web-host <host>', 'Web server host', 'localhost')
-            .option('-wP, --web-port <port>', 'Web server port', '3000')
-            .option('-tH, --telemetry-host <host>', 'Telemetry server host', 'localhost')
-            .option('-tP, --telemetry-port <port>', 'Telemetry server port', '5555')
-            .option('-D, --debug', 'Print debug information', false)
-            .parse();
+app.listen(port, host, () => {
+    logger.log(`API server running on ${host}:${port}`);
+});
 
-        const options = program.opts();
-
-        this.applicationConfiguration = {
-            apiHost: options.wH,
-            apiPort: parseInt(options.wP, 10),
-            serverHost: options.tH,
-            serverPort: parseInt(options.tP, 10),
-        };
-
-        config.debug = options.debug;
-    }
-
-    private startTelemetryServer(): void {
-        this.telemetryServer = telemetryServer.({
-            host: this.applicationConfiguration.serverHost,
-            port: this.applicationConfiguration.serverPort
-        });
-    }
-
-    private startWebServer(): void {
-        this.webServer = new WebServer({
-            host: this.applicationConfiguration.apiHost,
-            port: this.applicationConfiguration.apiPort,
-        });
-    }
-}
-
-const application = new DronisosTelemetry();
+telemetryServer.start();
